@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campo Magnético em Espira Circular - Corrigido</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #004d99;
+            text-align: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 700px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            margin-top: 20px;
+            cursor: pointer;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .explanation {
+            margin-top: 30px;
+            text-align: left;
+        }
+        .explanation h2 {
+            color: #cc0000;
+        }
+        .explanation p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .step {
+            margin-bottom: 15px;
+        }
+        .step strong {
+            color: #0066cc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Campo Magnético em uma Espira Circular</h1>
+    <p>Interaja com o esquema abaixo para visualizar a relação entre a corrente elétrica e o campo magnético no centro, aplicando a **Regra da Mão Direita**.</p>
+
+    <div class="container">
+        <canvas id="magneticFieldCanvas" width="400" height="400"></canvas>
+    </div>
+
+    <div class="container explanation">
+        <h2>Regra da Mão Direita</h2>
+        <p>A regra da mão direita é uma ferramenta simples para determinar a direção do campo magnético (B) gerado por uma corrente elétrica (I). No caso de uma espira circular, ela funciona da seguinte maneira:</p>
+
+        <div class="step">
+            <p><strong>Passo 1:</strong> Imagine que você está segurando o fio da espira com a sua mão direita.</p>
+        </div>
+        <div class="step">
+            <p><strong>Passo 2:</strong> Enrole os seus dedos no sentido em que a corrente elétrica (setas vermelhas) está circulando na espira.</p>
+        </div>
+        <div class="step">
+            <p><strong>Resultado:</strong> O seu polegar estendido irá apontar para o sentido do campo magnético no centro da espira.</p>
+            <ul>
+                <li>Se a corrente estiver no sentido **horário**, o campo é representado por um **"X"** (entrando na tela).</li>
+                <li>Se a corrente estiver no sentido **anti-horário**, o campo é representado por um **ponto (•)** (saindo da tela).</li>
+            </ul>
+        </div>
+        
+        <p>A animação acima demonstra este princípio. Clique na espira para inverter o sentido da corrente e observe como o campo magnético central e o movimento das setas também invertem.</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('magneticFieldCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 100;
+        let isClockwise = false; // false: anti-horário (ponto), true: horário (X)
+        let offset = 0;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenha a espira (fio)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+
+            // Desenha as setas da corrente elétrica
+            const numArrows = 12;
+            for (let i = 0; i < numArrows; i++) {
+                // Calcula o ângulo da posição da seta
+                const positionAngle = (i / numArrows) * (2 * Math.PI) + offset;
+                const x = centerX + radius * Math.cos(positionAngle);
+                const y = centerY + radius * Math.sin(positionAngle);
+                
+                // Calcula o ângulo de rotação da seta (depende da direção da corrente)
+                const arrowLength = 15;
+                const arrowRotationAngle = positionAngle + (isClockwise ? Math.PI / 2 : -Math.PI / 2);
+
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(arrowRotationAngle);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-arrowLength, arrowLength / 3);
+                ctx.lineTo(-arrowLength, -arrowLength / 3);
+                ctx.closePath();
+                ctx.fillStyle = '#cc0000';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Desenha o campo magnético central
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#0066cc';
+            ctx.stroke();
+
+            if (isClockwise) { // Corrente no sentido horário -> Campo ENTRA (X)
+                ctx.beginPath();
+                ctx.moveTo(centerX - 20, centerY - 20);
+                ctx.lineTo(centerX + 20, centerY + 20);
+                ctx.moveTo(centerX + 20, centerY - 20);
+                ctx.lineTo(centerX - 20, centerY + 20);
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#0066cc';
+                ctx.stroke();
+            } else { // Corrente no sentido anti-horário -> Campo SAI (Ponto)
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 10, 0, 2 * Math.PI);
+                ctx.fillStyle = '#0066cc';
+                ctx.fill();
+            }
+
+            // Desenha o texto "B"
+            ctx.font = "bold 20px Arial";
+            ctx.fillStyle = '#0066cc';
+            ctx.fillText("B", centerX + 40, centerY + 5);
+
+            // Desenha o texto "I"
+            ctx.font = "bold 16px Arial";
+            ctx.fillStyle = '#cc0000';
+            ctx.fillText("I", centerX + radius + 15, centerY);
+        }
+
+        // Animação das setas da corrente
+        function animate() {
+            // Controla a direção do movimento da animação com base na flag isClockwise
+            offset += isClockwise ? 0.01 : -0.01;
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        // Alterna o sentido da corrente ao clicar
+        canvas.addEventListener('click', () => {
+            isClockwise = !isClockwise;
+        });
+
+        // Inicia a animação
+        animate();
+    </script>
+</body>
+</html>
